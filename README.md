@@ -168,4 +168,4 @@ Add relevant screenshots here:
 
 ## License
 
-This project is open-source. You are free to use, modify, and distribute it.
+This project is open-source. You are free to use,but not  modify, and distribute it.
