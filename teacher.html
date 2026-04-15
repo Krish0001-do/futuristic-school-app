@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EduManage Pro — Teacher Portal</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Rajdhani:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="styles.css"/>
+  <style>
+    /* ── Teacher cyan theme ── */
+    .sidebar .nav-link.active {
+      background: linear-gradient(90deg, rgba(0,245,255,.12), transparent);
+      border-left-color: #00f5ff; color: #00f5ff;
+    }
+    .sidebar .nav-link.active .nav-icon { color: #00f5ff; }
+    .brand-icon { background: linear-gradient(135deg,#00f5ff,#7b61ff) !important; }
+
+    /* ── Teacher profile hero ── */
+    .teacher-hero {
+      background: linear-gradient(135deg,rgba(0,245,255,.1),rgba(123,97,255,.08));
+      border:1px solid rgba(0,245,255,.2); border-radius:20px; padding:2rem;
+      display:flex;align-items:center;gap:2rem; position:relative;overflow:hidden;
+    }
+    .teacher-hero::before { content:'';position:absolute;inset:0;background:radial-gradient(circle at 0% 0%,rgba(0,245,255,.1),transparent 60%); }
+    .teacher-ava {
+      width:90px;height:90px;border-radius:50%;flex-shrink:0;
+      background:linear-gradient(135deg,#00f5ff,#7b61ff);
+      display:flex;align-items:center;justify-content:center;
+      font-family:var(--font-brand);font-size:2rem;font-weight:700;
+      box-shadow:0 0 35px rgba(0,245,255,.5); position:relative;z-index:1;
+    }
+    .teacher-info { position:relative;z-index:1; }
+    .teacher-name { font-family:var(--font-brand);font-size:1.4rem;color:#fff; }
+    .teacher-sub  { color:rgba(255,255,255,.5);font-size:.85rem;margin:.2rem 0 .75rem; }
+    .chip {
+      display:inline-block;padding:.3rem .75rem;border-radius:20px;font-size:.75rem;font-weight:600;
+      background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:#ccc;margin-right:.4rem;margin-bottom:.35rem;
+    }
+    .chip.cyan{background:rgba(0,245,255,.1);border-color:rgba(0,245,255,.3);color:#00f5ff;}
+    .chip.purple{background:rgba(123,97,255,.15);border-color:rgba(123,97,255,.3);color:#7b61ff;}
+    .chip.green{background:rgba(0,230,118,.1);border-color:rgba(0,230,118,.3);color:#00e676;}
+
+    /* ── Stat mini ── */
+    .stat-mini-t {
+      background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);
+      border-radius:14px;padding:1.25rem;display:flex;align-items:center;gap:1rem;
+      border-left:3px solid var(--clr);
+    }
+    .stat-mini-t i{font-size:1.4rem;color:var(--clr);}
+    .smt-val{font-family:var(--font-brand);font-size:1.2rem;color:#fff;}
+    .smt-lab{font-size:.72rem;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:1px;}
+
+    /* ── Attendance rows ── */
+    .att-row { display:flex;align-items:center;gap:1rem;padding:.65rem .75rem;border-radius:12px;background:rgba(255,255,255,.03);margin-bottom:.4rem;border:1px solid rgba(255,255,255,.05);transition:background .2s; }
+    .att-row:hover{background:rgba(255,255,255,.05);}
+    .att-ava{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--neon-2),var(--neon));display:flex;align-items:center;justify-content:center;font-size:.82rem;font-weight:700;flex-shrink:0;}
+    .att-name-txt{font-size:.88rem;font-weight:600;color:#e0e8ff;}
+    .att-roll-txt{font-size:.72rem;color:rgba(255,255,255,.4);}
+    .att-btns{display:flex;gap:.4rem;margin-left:auto;}
+    .att-btn{padding:.3rem .65rem;border-radius:8px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);font-size:.72rem;font-weight:600;cursor:pointer;transition:all .2s;color:rgba(255,255,255,.6);}
+    .att-btn.btn-pres.active{background:rgba(0,230,118,.2);border-color:#00e676;color:#00e676;}
+    .att-btn.btn-abs.active{background:rgba(255,61,113,.2);border-color:#ff3d71;color:#ff3d71;}
+    .att-btn.btn-late.active{background:rgba(255,193,7,.2);border-color:#ffc107;color:#ffc107;}
+
+    /* ── Marks input ── */
+    .marks-input-field{width:70px;padding:.35rem .5rem;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:8px;color:#fff;font-size:.88rem;text-align:center;outline:none;transition:border-color .2s;}
+    .marks-input-field:focus{border-color:#00f5ff;box-shadow:0 0 10px rgba(0,245,255,.3);}
+
+    /* ── Notice post card ── */
+    .notice-post-wrap { background:rgba(0,245,255,.04);border:1px solid rgba(0,245,255,.15);border-radius:14px;padding:1.25rem;margin-bottom:1.25rem; }
+  </style>
+</head>
+<body>
+<canvas id="particleCanvas"></canvas>
+<div class="app-wrapper" id="appWrapper" style="display:none">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon"><i class="bi bi-person-workspace"></i></div>
+      <div class="brand-text">
+        <span class="brand-title">EduManage</span>
+        <span class="brand-sub">Teacher Portal</span>
+      </div>
+    </div>
+    <nav class="sidebar-nav" style="margin-top:1rem">
+      <div class="nav-section-label">OVERVIEW</div>
+      <a href="#" class="nav-link active" data-page="dashboard" id="nav-dashboard">
+        <span class="nav-icon"><i class="bi bi-grid-1x2-fill"></i></span>
+        <span class="nav-text">Dashboard</span>
+      </a>
+      <a href="#" class="nav-link" data-page="myclass" id="nav-myclass">
+        <span class="nav-icon"><i class="bi bi-people-fill"></i></span>
+        <span class="nav-text">My Class</span>
+        <span class="nav-badge" id="nb-myclass"></span>
+      </a>
+      <div class="nav-section-label mt-2">ACADEMICS</div>
+      <a href="#" class="nav-link" data-page="attendance" id="nav-attendance">
+        <span class="nav-icon"><i class="bi bi-check2-circle"></i></span>
+        <span class="nav-text">Attendance</span>
+      </a>
+      <a href="#" class="nav-link" data-page="marks" id="nav-marks">
+        <span class="nav-icon"><i class="bi bi-graph-up-arrow"></i></span>
+        <span class="nav-text">Marks & Results</span>
+      </a>
+      <div class="nav-section-label mt-2">COMMUNICATION</div>
+      <a href="#" class="nav-link" data-page="notices" id="nav-notices">
+        <span class="nav-icon"><i class="bi bi-megaphone-fill"></i></span>
+        <span class="nav-text">Announcements</span>
+        <span class="nav-badge" id="nb-notices"></span>
+      </a>
+      <a href="#" class="nav-link" data-page="homework" id="nav-homework">
+        <span class="nav-icon"><i class="bi bi-journal-bookmark-fill"></i></span>
+        <span class="nav-text">Homework</span>
+        <span class="nav-badge" id="nb-hw"></span>
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="admin-card">
+        <div class="admin-ava" id="tchAva" style="background:linear-gradient(135deg,#00f5ff,#7b61ff)">T</div>
+        <div class="admin-meta">
+          <div class="admin-name" id="tchSidebarName">Teacher</div>
+          <div class="admin-role"><i class="bi bi-circle-fill text-neon" style="font-size:6px"></i> Teacher Portal</div>
+        </div>
+      </div>
+      <button onclick="logout()" class="btn-ghost w-100 mt-2" style="font-size:.78rem">
+        <i class="bi bi-box-arrow-left me-1"></i>Logout
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main-area">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="mobile-toggle" onclick="document.getElementById('sidebar').classList.toggle('mobile-open')"><i class="bi bi-list"></i></button>
+        <div>
+          <h1 class="topbar-title" id="topbarTitle">Dashboard</h1>
+          <div class="topbar-crumb" id="topbarCrumb">Teacher / Dashboard</div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-action" title="Logout" onclick="logout()"><i class="bi bi-box-arrow-left"></i></div>
+      </div>
+    </header>
+
+    <div class="pages-wrap">
+
+      <!-- DASHBOARD -->
+      <div class="page active" id="page-dashboard">
+        <div class="teacher-hero mb-4">
+          <div class="teacher-ava" id="tchAvaHero">T</div>
+          <div class="teacher-info">
+            <div class="teacher-name" id="tchName">—</div>
+            <div class="teacher-sub" id="tchSubject">—</div>
+            <div id="tchChips"></div>
+          </div>
+        </div>
+        <div class="row g-3 mb-4" id="dashStats"></div>
+        <div class="row g-4">
+          <div class="col-xl-7">
+            <div class="glass-card">
+              <div class="gc-header"><span class="gc-title"><i class="bi bi-people-fill text-neon me-2"></i>My Class — Quick View</span></div>
+              <div class="table-responsive">
+                <table class="fut-table">
+                  <thead><tr><th>Roll</th><th>Student</th><th>Gender</th><th>Fee Status</th></tr></thead>
+                  <tbody id="dashClassTbody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <div class="col-xl-5">
+            <div class="glass-card">
+              <div class="gc-header"><span class="gc-title"><i class="bi bi-megaphone-fill text-neon me-2"></i>Recent Notices</span></div>
+              <div id="dashNotices"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MY CLASS -->
+      <div class="page hidden" id="page-myclass">
+        <div class="glass-card mb-4">
+          <div class="gc-header">
+            <span class="gc-title"><i class="bi bi-people-fill text-neon me-2"></i>Class: <span id="myClassName">—</span></span>
+            <input type="text" class="fut-input" id="classSearch" placeholder="Search student..." style="width:200px" oninput="filterClassStudents()"/>
+          </div>
+          <div class="table-responsive">
+            <table class="fut-table">
+              <thead><tr><th>#</th><th>Roll</th><th>Name</th><th>Gender</th><th>Blood</th><th>Contact</th><th>Fee Status</th></tr></thead>
+              <tbody id="classStudentsTbody"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="glass-card">
+          <div class="gc-header"><span class="gc-title"><i class="bi bi-bar-chart-fill text-neon me-2"></i>Class Statistics</span></div>
+          <div class="row g-3 p-2" id="classStatsRow"></div>
+        </div>
+      </div>
+
+      <!-- ATTENDANCE -->
+      <div class="page hidden" id="page-attendance">
+        <div class="page-toolbar">
+          <div class="d-flex gap-2 flex-wrap">
+            <div>
+              <label class="fut-label" style="font-size:.7rem;margin-bottom:.3rem">Class</label>
+              <select class="fut-select" id="attClassSelect" onchange="loadAttList()">
+                <option value="">My Assigned Class</option>
+              </select>
+            </div>
+            <div>
+              <label class="fut-label" style="font-size:.7rem;margin-bottom:.3rem">Date</label>
+              <input type="date" class="fut-input" id="attDate" onchange="loadAttList()"/>
+            </div>
+          </div>
+          <div class="d-flex gap-2">
+            <button class="btn-ghost" onclick="markAllPresent()"><i class="bi bi-check-all me-1"></i>All Present</button>
+            <button class="btn-neon" onclick="saveAttendance()"><i class="bi bi-save-fill me-1"></i>Save</button>
+          </div>
+        </div>
+        <div class="glass-card">
+          <div class="att-summary-bar" id="attSummary"></div>
+          <div id="attList"><div class="empty-state"><i class="bi bi-calendar3"></i><p>Select class and date to begin</p></div></div>
+        </div>
+      </div>
+
+      <!-- MARKS -->
+      <div class="page hidden" id="page-marks">
+        <div class="page-toolbar">
+          <div class="d-flex gap-2 flex-wrap">
+            <select class="fut-select" id="mrkClass" onchange="onMarksClassChange()"><option value="">Select Class</option></select>
+            <select class="fut-select" id="mrkSubject" onchange="loadMarksTable()"><option value="">Select Subject</option></select>
+            <select class="fut-select" id="mrkExam" onchange="loadMarksTable()">
+              <option>Unit Test 1</option><option>Unit Test 2</option><option>Mid Term</option><option>Final Exam</option>
+            </select>
+          </div>
+          <button class="btn-neon" onclick="saveMarks()"><i class="bi bi-save-fill me-1"></i>Save Marks</button>
+        </div>
+        <div class="glass-card">
+          <div class="table-responsive">
+            <table class="fut-table">
+              <thead><tr><th>Roll</th><th>Student Name</th><th>Marks /100</th><th>Grade</th><th>Remarks</th></tr></thead>
+              <tbody id="mrksTbody"><tr><td colspan="5" class="empty-cell">Select class, subject & exam above.</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- NOTICES -->
+      <div class="page hidden" id="page-notices">
+        <!-- Post Notice -->
+        <div class="notice-post-wrap">
+          <div class="gc-title mb-3"><i class="bi bi-pencil-fill text-neon me-2"></i>Post New Announcement</div>
+          <div class="row g-2">
+            <div class="col-md-6"><input class="fut-input" id="nTitle" placeholder="Notice title *"/></div>
+            <div class="col-md-3">
+              <select class="fut-select w-100" id="nCat"><option>General</option><option>Exam</option><option>Holiday</option><option>Sports</option><option>Fee</option></select>
+            </div>
+            <div class="col-md-3">
+              <select class="fut-select w-100" id="nPrio"><option>Normal</option><option>High</option><option>Urgent</option></select>
+            </div>
+            <div class="col-12"><textarea class="fut-input" id="nContent" rows="3" placeholder="Notice content *"></textarea></div>
+            <div class="col-12"><button class="btn-neon" onclick="postNotice()"><i class="bi bi-megaphone-fill me-1"></i>Post Announcement</button></div>
+          </div>
+        </div>
+        <!-- All Notices -->
+        <div class="glass-card">
+          <div class="gc-header">
+            <span class="gc-title"><i class="bi bi-list-ul text-neon me-2"></i>All Announcements</span>
+            <select class="fut-select" id="noticeFilter" onchange="renderNotices()">
+              <option value="">All</option><option>General</option><option>Exam</option><option>Holiday</option><option>Sports</option><option>Fee</option>
+            </select>
+          </div>
+          <div id="noticesList" class="p-2"></div>
+        </div>
+      </div>
+
+      <!-- HOMEWORK -->
+      <div class="page hidden" id="page-homework">
+        <div class="notice-post-wrap">
+          <div class="gc-title mb-3"><i class="bi bi-journal-plus-fill text-neon me-2"></i>Assign New Homework</div>
+          <div class="row g-2">
+            <div class="col-md-5"><input class="fut-input" id="hwTitle" placeholder="Homework title *"/></div>
+            <div class="col-md-3">
+              <select class="fut-select w-100" id="hwSubject">
+                <option value="">Select Subject</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="fut-label" style="font-size:.7rem;margin-bottom:.2rem">Due Date *</label>
+              <input type="date" class="fut-input" id="hwDueDate"/>
+            </div>
+            <div class="col-12"><textarea class="fut-input" id="hwDesc" rows="3" placeholder="Description / instructions *"></textarea></div>
+            <div class="col-12"><button class="btn-neon" onclick="postHomework()"><i class="bi bi-journal-check me-1"></i>Assign Homework</button></div>
+          </div>
+        </div>
+        <div class="glass-card">
+          <div class="gc-header">
+            <span class="gc-title"><i class="bi bi-journal-bookmark-fill text-neon me-2"></i>Assigned Homework</span>
+            <span class="badge-neon" id="hwCountTch">—</span>
+          </div>
+          <div id="hwListTch" class="p-2"><div class="empty-state"><i class="bi bi-journal-x"></i><p>No homework assigned yet.</p></div></div>
+        </div>
+      </div>
+
+    </div><!-- /pages-wrap -->
+  </div><!-- /main-area -->
+</div><!-- /app-wrapper -->
+
+<!-- Toast -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index:9999">
+  <div id="liveToast" class="fut-toast toast"><div class="toast-body" id="toastMsg">Done!</div></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="database.js"></script>
+<script src="animations.js"></script>
+<script>
+'use strict';
+
+/* ══ Auth ══ */
+const sess = JSON.parse(sessionStorage.getItem('edu_session')||'null');
+// Verify session role + signature
+(function(){
+  function djb2(s){let h=5381;for(let i=0;i<s.length;i++)h=((h<<5)+h)^s.charCodeAt(i);return(h>>>0).toString(36);}
+  const raw=(sess&&sess.role||'')+(sess&&sess.id||'')+(sess&&sess.empId||'')+(sess&&sess.studentRoll||'');
+  if(!sess||sess.role!=='teacher'||!sess._sig||djb2(raw+'_edu_sig_2026')!==sess._sig){
+    sessionStorage.clear(); window.location.href='login.html';
+  }
+})();
+
+/* ══ DB ══ */
+let DB;
+const raw=localStorage.getItem('edumanage_pro_v3');
+DB=raw?JSON.parse(raw):null;
+if(!DB){
+  DB={classes:SchoolSeedData.classes,teachers:SchoolSeedData.teachers,students:SchoolSeedData.students,notices:SchoolSeedData.notices,fees:{},attendance:{},marks:{}};
+  SchoolSeedData.students.forEach(s=>{const paid=Math.floor(s.fee*(0.4+Math.random()*.5));DB.fees[s.roll]={due:s.fee,paid,history:paid>0?[{amount:paid,mode:'Cash',receipt:'AUTO',date:'2026-01-15',remarks:'Opening balance'}]:[]};});
+}
+function saveDB(){ localStorage.setItem('edumanage_pro_v3',JSON.stringify(DB)); }
+if(!DB.homework) DB.homework = [];
+
+/* ══ Teacher data ══ */
+
+/* ══ Security: XSS prevention ══ */
+function escapeHtml(str) {
+  if(!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+/* ══ Teacher data ══ */
+const teacher = DB.teachers.find(t=>t.id===sess.id) || DB.teachers.find(t=>t.empId===sess.empId);
+if(!teacher){ sessionStorage.clear(); window.location.href='login.html'; }
+const myClass = DB.classes.find(c=>c.name===teacher.cls);
+const myStudents = myClass ? DB.students.filter(s=>s.cls===myClass.name) : [];
+
+/* ══ Bootstrap UI ══ */
+document.getElementById('tchAva').textContent   = teacher.name.charAt(0);
+document.getElementById('tchSidebarName').textContent = teacher.name;
+document.getElementById('tchAvaHero').textContent = teacher.name.charAt(0);
+document.getElementById('tchName').textContent    = teacher.name;
+document.getElementById('tchSubject').textContent = teacher.subject + (teacher.empId?' · '+teacher.empId:'');
+document.getElementById('tchChips').innerHTML = `
+  <div class="chip cyan"><i class="bi bi-journal-bookmark-fill me-1"></i>${myClass?myClass.name:'No class assigned'}</div>
+  <div class="chip purple"><i class="bi bi-mortarboard-fill me-1"></i>${teacher.qual||'—'}</div>
+  <div class="chip"><i class="bi bi-telephone-fill me-1"></i>${teacher.contact}</div>
+  <div class="chip"><i class="bi bi-envelope-fill me-1"></i>${teacher.email||'—'}</div>`;
+document.getElementById('nb-myclass').textContent = myStudents.length||'';
+document.getElementById('nb-notices').textContent = DB.notices.length||'';
+document.getElementById('appWrapper').style.display='';
+initParticles();
+renderDashboard();
+
+/* ══ Navigation ══ */
+let attState={}, marksState={};
+const pageTitles={dashboard:'Dashboard',myclass:'My Class',attendance:'Attendance',marks:'Marks & Results',notices:'Announcements',homework:'Homework'};
+
+$('#sidebar .nav-link').on('click',function(e){
+  e.preventDefault();
+  const pg=$(this).data('page');
+  $('.page').addClass('hidden').removeClass('active');
+  $(`#page-${pg}`).removeClass('hidden').addClass('active');
+  $('#sidebar .nav-link').removeClass('active');
+  $(this).addClass('active');
+  document.getElementById('topbarTitle').textContent=pageTitles[pg]||pg;
+  document.getElementById('topbarCrumb').textContent='Teacher / '+(pageTitles[pg]||pg);
+  if(pg==='myclass') renderMyClass();
+  if(pg==='attendance') initAttendancePage();
+  if(pg==='marks') initMarksPage();
+  if(pg==='notices') renderNotices();
+  if(pg==='homework') initHomeworkPage();
+});
+
+/* ══ DASHBOARD ══ */
+function renderDashboard(){
+  const today=new Date().toISOString().split('T')[0];
+  const todayKey=myClass?`${myClass.name}__${today}`:'';
+  const todayAtt=todayKey&&DB.attendance[todayKey]?DB.attendance[todayKey]:{};
+  const presentToday=Object.values(todayAtt).filter(v=>v==='present').length;
+  const totalFee=myStudents.reduce((a,s)=>{const f=DB.fees[s.roll]||{};return a+f.due;},0);
+  const paidFee=myStudents.reduce((a,s)=>{const f=DB.fees[s.roll]||{};return a+f.paid;},0);
+
+  document.getElementById('dashStats').innerHTML=`
+    ${[{clr:'#00f5ff',icon:'bi-people-fill',val:myStudents.length,lab:'Students in My Class'},
+       {clr:'#00e676',icon:'bi-calendar-check-fill',val:presentToday||'—',lab:"Today's Attendance"},
+       {clr:'#7b61ff',icon:'bi-journal-bookmark',val:myClass?myClass.subjects.length:0,lab:'Subjects'},
+       {clr:'#ffc107',icon:'bi-cash-coin',val:totalFee>0?Math.round(paidFee/totalFee*100)+'%':'—',lab:'Fee Collected'},
+    ].map(x=>`
+      <div class="col-sm-6 col-xl-3">
+        <div class="stat-mini-t" style="--clr:${x.clr}"><i class="bi ${x.icon}"></i>
+          <div><div class="smt-val">${x.val}</div><div class="smt-lab">${x.lab}</div></div></div>
+      </div>`).join('')}`;
+
+  // Quick class view
+  document.getElementById('myClassName') && (document.getElementById('myClassName').textContent=myClass?myClass.name:'—');
+  document.getElementById('dashClassTbody').innerHTML=myStudents.slice(0,8).map(s=>{
+    const f=DB.fees[s.roll]||{};const st=f.paid>=f.due?'Paid':f.paid>0?'Partial':'Pending';
+    return `<tr><td><code style="color:var(--neon);font-size:.8rem">${s.roll}</code></td><td><strong>${s.name}</strong></td><td>${s.gender}</td><td>${feeBadge(st)}</td></tr>`;
+  }).join('')+(myStudents.length>8?`<tr><td colspan="4" style="text-align:center;color:rgba(255,255,255,.3);font-size:.78rem">+${myStudents.length-8} more — Go to "My Class"</td></tr>`:'');
+
+  // Notices
+  const catColors={General:'#00f5ff',Exam:'#7b61ff',Holiday:'#00e676',Sports:'#ffc107',Fee:'#ff3d71'};
+  document.getElementById('dashNotices').innerHTML=DB.notices.slice(0,4).map(n=>`
+    <div style="display:flex;align-items:flex-start;gap:.75rem;padding:.65rem .75rem;border-radius:10px;background:rgba(255,255,255,.03);margin-bottom:.4rem">
+      <div style="width:8px;height:8px;border-radius:50%;background:${catColors[n.cat]||'#00f5ff'};margin-top:.4rem;flex-shrink:0"></div>
+      <div><div style="font-size:.85rem;font-weight:600;color:#e0e8ff">${n.title}</div><div style="font-size:.72rem;color:rgba(255,255,255,.35)">${n.cat} · ${fmtDate(n.date)}</div></div>
+    </div>`).join('');
+}
+
+/* ══ MY CLASS ══ */
+function renderMyClass(){
+  document.getElementById('myClassName').textContent=myClass?myClass.name:'—';
+  filterClassStudents();
+  // Stats
+  const paid=myStudents.filter(s=>{const f=DB.fees[s.roll]||{};return f.paid>=f.due;}).length;
+  const partial=myStudents.filter(s=>{const f=DB.fees[s.roll]||{};return f.paid<f.due&&f.paid>0;}).length;
+  const pending=myStudents.length-paid-partial;
+  const male=myStudents.filter(s=>s.gender==='Male').length;
+  document.getElementById('classStatsRow').innerHTML=`
+    ${[{clr:'#00f5ff',label:'Total Students',val:myStudents.length},
+       {clr:'#00e676',label:'Fee Paid',val:paid},
+       {clr:'#ffc107',label:'Fee Partial',val:partial},
+       {clr:'#ff3d71',label:'Fee Pending',val:pending},
+       {clr:'#7b61ff',label:'Male',val:male},
+       {clr:'#ff2d78',label:'Female',val:myStudents.length-male},
+    ].map(x=>`<div class="col-sm-6 col-md-4 col-xl-2">
+      <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-left:3px solid ${x.clr};border-radius:12px;padding:1rem;text-align:center">
+        <div style="font-family:var(--font-brand);font-size:1.4rem;color:#fff">${x.val}</div>
+        <div style="font-size:.7rem;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.8px">${x.label}</div>
+      </div></div>`).join('')}`;
+}
+function filterClassStudents(){
+  const q=(document.getElementById('classSearch')?.value||'').toLowerCase();
+  const list=q?myStudents.filter(s=>s.name.toLowerCase().includes(q)||s.roll.includes(q)):myStudents;
+  document.getElementById('classStudentsTbody').innerHTML=list.map((s,i)=>{
+    const f=DB.fees[s.roll]||{};const st=f.paid>=f.due?'Paid':f.paid>0?'Partial':'Pending';
+    return `<tr><td>${i+1}</td><td><code style="color:var(--neon);font-size:.8rem">${s.roll}</code></td><td><strong>${s.name}</strong></td><td>${s.gender}</td><td>${s.blood||'—'}</td><td>${s.contact||'—'}</td><td>${feeBadge(st)}</td></tr>`;
+  }).join('')||'<tr><td colspan="7" class="empty-cell">No students found.</td></tr>';
+}
+
+/* ══ ATTENDANCE ══ */
+function initAttendancePage(){
+  const sel=document.getElementById('attClassSelect');
+  // Restrict to teacher's own class only for security
+  sel.innerHTML=`<option value="${myClass?myClass.name:''}">${myClass?myClass.name:'No class assigned'}</option>`;
+  document.getElementById('attDate').value=new Date().toISOString().split('T')[0];
+  loadAttList();
+}
+
+function loadAttList(){
+  const cls=document.getElementById('attClassSelect').value||myClass?.name;
+  const date=document.getElementById('attDate').value;
+  if(!cls||!date){ document.getElementById('attList').innerHTML='<div class="empty-state"><i class="bi bi-calendar3"></i><p>Select class and date</p></div>';return; }
+  const students=DB.students.filter(s=>s.cls===cls);
+  if(!students.length){ document.getElementById('attList').innerHTML='<div class="empty-state"><i class="bi bi-people"></i><p>No students in this class.</p></div>';return; }
+  const key=`${cls}__${date}`;
+  attState={...(DB.attendance[key]||{})};
+  document.getElementById('attList').innerHTML=students.map(s=>{
+    const st=attState[s.roll]||'';
+    return `<div class="att-row">
+      <div class="att-ava">${s.name.charAt(0)}</div>
+      <div class="att-info"><div class="att-name-txt">${s.name}</div><div class="att-roll-txt">Roll: ${s.roll}</div></div>
+      <div class="att-btns">
+        <button class="att-btn btn-pres${st==='present'?' active':''}" data-roll="${s.roll}" data-val="present">✅ Present</button>
+        <button class="att-btn btn-abs${st==='absent'?' active':''}" data-roll="${s.roll}" data-val="absent">❌ Absent</button>
+        <button class="att-btn btn-late${st==='late'?' active':''}" data-roll="${s.roll}" data-val="late">⏰ Late</button>
+      </div>
+    </div>`;
+  }).join('');
+  updateAttSummary(students.length);
+  $(document).off('click.att').on('click.att','.att-btn',function(){
+    const roll=$(this).data('roll'),val=$(this).data('val');
+    attState[roll]=attState[roll]===val?'':val;
+    $(`.att-btn[data-roll="${roll}"]`).removeClass('active');
+    if(attState[roll])$(this).addClass('active');
+    updateAttSummary(students.length);
+  });
+}
+function updateAttSummary(total){
+  const v=Object.values(attState);
+  const p=v.filter(x=>x==='present').length,a=v.filter(x=>x==='absent').length,l=v.filter(x=>x==='late').length,u=total-p-a-l;
+  document.getElementById('attSummary').innerHTML=`
+    <div class="att-sum-item"><div class="att-sum-dot" style="background:var(--green)"></div>Present: <strong>${p}</strong></div>
+    <div class="att-sum-item"><div class="att-sum-dot" style="background:var(--red)"></div>Absent: <strong>${a}</strong></div>
+    <div class="att-sum-item"><div class="att-sum-dot" style="background:var(--amber)"></div>Late: <strong>${l}</strong></div>
+    <div class="att-sum-item"><div class="att-sum-dot" style="background:var(--text-3)"></div>Unmarked: <strong>${u}</strong></div>`;
+}
+function markAllPresent(){
+  const cls=document.getElementById('attClassSelect').value||myClass?.name;
+  if(!cls)return;
+  DB.students.filter(s=>s.cls===cls).forEach(s=>{attState[s.roll]='present';});
+  $('.att-btn').removeClass('active');$('.att-btn.btn-pres').addClass('active');
+  updateAttSummary(DB.students.filter(s=>s.cls===cls).length);
+}
+function saveAttendance(){
+  const cls=document.getElementById('attClassSelect').value||myClass?.name;
+  const date=document.getElementById('attDate').value;
+  if(!cls||!date){toast('Select class and date!','danger');return;}
+  DB.attendance[`${cls}__${date}`]={...attState};
+  saveDB(); toast('Attendance saved! ✅','success');
+}
+
+/* ══ MARKS ══ */
+function initMarksPage(){
+  const sel=document.getElementById('mrkClass');
+  sel.innerHTML='<option value="">Select Class</option>';
+  if(myClass) sel.innerHTML+=`<option value="${myClass.name}" selected>${myClass.name}</option>`;
+  DB.classes.forEach(c=>{if(!myClass||c.name!==myClass.name)sel.innerHTML+=`<option value="${c.name}">${c.name}</option>`;});
+  onMarksClassChange();
+}
+function onMarksClassChange(){
+  const cls=DB.classes.find(c=>c.name===document.getElementById('mrkClass').value);
+  const sub=document.getElementById('mrkSubject');
+  sub.innerHTML='<option value="">Select Subject</option>';
+  if(cls) cls.subjects.forEach(s=>sub.innerHTML+=`<option value="${s}">${s}</option>`);
+  if(myClass&&cls&&cls.name===myClass.name){ const mySubOpt=sub.querySelector(`option[value="${teacher.subject}"]`);if(mySubOpt)mySubOpt.selected=true; }
+  loadMarksTable();
+}
+function loadMarksTable(){
+  const cls=document.getElementById('mrkClass').value;
+  const sub=document.getElementById('mrkSubject').value;
+  const exam=document.getElementById('mrkExam').value;
+  if(!cls||!sub){document.getElementById('mrksTbody').innerHTML='<tr><td colspan="5" class="empty-cell">Select class and subject.</td></tr>';return;}
+  const key=`${cls}__${sub}__${exam}`;
+  const saved=DB.marks[key]||{};
+  const students=DB.students.filter(s=>s.cls===cls);
+  marksState={...saved};
+  if(!students.length){document.getElementById('mrksTbody').innerHTML='<tr><td colspan="5" class="empty-cell">No students in this class.</td></tr>';return;}
+  document.getElementById('mrksTbody').innerHTML=students.map(s=>{
+    const m=marksState[s.roll]!==undefined?marksState[s.roll]:'';
+    const g=m!==''?getGrade(+m):'—';
+    return `<tr><td><code style="color:var(--neon);font-size:.8rem">${s.roll}</code></td><td><strong>${s.name}</strong></td>
+      <td><input type="number" class="marks-input-field" min="0" max="100" value="${m}" placeholder="—" data-roll="${s.roll}"/></td>
+      <td id="grade-${s.roll}">${gradeHtml(g)}</td>
+      <td style="color:rgba(255,255,255,.5);font-size:.78rem">${getRemarks(m)}</td></tr>`;
+  }).join('');
+  $(document).off('input.marks').on('input.marks','.marks-input-field',function(){
+    const roll=$(this).data('roll'),val=parseInt($(this).val());
+    if(!isNaN(val)&&val>=0&&val<=100){marksState[roll]=val;$(`#grade-${roll}`).html(gradeHtml(getGrade(val)));}
+  });
+}
+function saveMarks(){
+  const cls=document.getElementById('mrkClass').value,sub=document.getElementById('mrkSubject').value,exam=document.getElementById('mrkExam').value;
+  if(!cls||!sub){toast('Select class and subject!','danger');return;}
+  DB.marks[`${cls}__${sub}__${exam}`]={...marksState};
+  saveDB(); toast('Marks saved! 📝','success');
+}
+
+/* ══ NOTICES ══ */
+function renderNotices(){
+  const filter=document.getElementById('noticeFilter')?.value||'';
+  const list=filter?DB.notices.filter(n=>n.cat===filter):DB.notices;
+  const catClr={General:'#00f5ff',Exam:'#7b61ff',Holiday:'#00e676',Sports:'#ffc107',Fee:'#ff3d71'};
+  const prioBadge={Normal:'badge-prio-normal',High:'badge-prio-high',Urgent:'badge-prio-urgent'};
+  document.getElementById('noticesList').innerHTML=list.length?list.map(n=>`
+    <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-left:3px solid ${catClr[n.cat]||'#00f5ff'};border-radius:12px;padding:1rem;margin-bottom:.6rem">
+      <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.4rem">
+        <span style="font-weight:600;color:#fff;flex:1">${escapeHtml(n.title)}</span>
+        <span class="${prioBadge[n.prio]||'badge-prio-normal'}">${escapeHtml(n.prio)}</span>
+        <button onclick="deleteNotice('${escapeHtml(n.id)}')" style="background:none;border:none;color:rgba(255,45,120,.6);cursor:pointer;font-size:1rem" title="Delete"><i class="bi bi-trash-fill"></i></button>
+      </div>
+      <div style="font-size:.82rem;color:rgba(255,255,255,.5);line-height:1.6">${escapeHtml(n.content)}</div>
+      <div style="font-size:.7rem;color:rgba(255,255,255,.3);margin-top:.4rem"><i class="bi bi-calendar3 me-1"></i>${fmtDate(n.date)} · <span style="color:${catClr[n.cat]}">${escapeHtml(n.cat)}</span></div>
+    </div>`).join('')
+    :'<div class="empty-state"><i class="bi bi-megaphone"></i><p>No notices.</p></div>';
+}
+function postNotice(){
+  const title=document.getElementById('nTitle').value.trim(),content=document.getElementById('nContent').value.trim();
+  if(!title||!content){toast('Fill title and content!','danger');return;}
+  DB.notices.unshift({id:'N'+Date.now(),title,cat:document.getElementById('nCat').value,prio:document.getElementById('nPrio').value,content,date:new Date().toISOString().split('T')[0]});
+  saveDB(); document.getElementById('nTitle').value=''; document.getElementById('nContent').value='';
+  renderNotices(); updateNavBadge(); toast('Announcement posted! 📢','success');
+}
+function deleteNotice(id){
+  if(!confirm('Delete this notice?'))return;
+  DB.notices=DB.notices.filter(n=>n.id!==id); saveDB(); renderNotices(); toast('Deleted.','success');
+}
+function updateNavBadge(){ document.getElementById('nb-notices').textContent=DB.notices.length||''; }
+
+/* ══ HOMEWORK ══ */
+function initHomeworkPage(){
+  // Populate subject dropdown from teacher's class
+  const sel=document.getElementById('hwSubject');
+  sel.innerHTML='<option value="">Select Subject</option>';
+  if(myClass) myClass.subjects.forEach(s=>sel.innerHTML+=`<option value="${s}">${s}</option>`);
+  // Default due date to tomorrow
+  const tmr=new Date(); tmr.setDate(tmr.getDate()+1);
+  document.getElementById('hwDueDate').value=tmr.toISOString().split('T')[0];
+  renderHomeworkTch();
+}
+function postHomework(){
+  const title=document.getElementById('hwTitle').value.trim();
+  const subject=document.getElementById('hwSubject').value;
+  const desc=document.getElementById('hwDesc').value.trim();
+  const dueDate=document.getElementById('hwDueDate').value;
+  if(!title||!subject||!desc||!dueDate){toast('Fill all homework fields!','danger');return;}
+  if(!myClass){toast('No class assigned to you!','danger');return;}
+  DB.homework.unshift({id:'HW'+Date.now(),cls:myClass.name,subject,title,desc,dueDate,postedDate:new Date().toISOString().split('T')[0],postedBy:teacher.name});
+  saveDB();
+  document.getElementById('hwTitle').value='';
+  document.getElementById('hwDesc').value='';
+  renderHomeworkTch();
+  updateHwBadge();
+  toast('Homework assigned! 📝','success');
+}
+function renderHomeworkTch(){
+  const list=(DB.homework||[]).filter(h=>h.cls===myClass?.name);
+  const el=document.getElementById('hwListTch');
+  const cntEl=document.getElementById('hwCountTch');
+  if(cntEl) cntEl.textContent=list.length?`${list.length} task${list.length>1?'s':''}`:'None';
+  if(!list.length){el.innerHTML='<div class="empty-state"><i class="bi bi-journal-x"></i><p>No homework assigned yet.</p></div>';return;}
+  const today=new Date(); today.setHours(0,0,0,0);
+  el.innerHTML=list.map(h=>{
+    const due=new Date(h.dueDate); due.setHours(0,0,0,0);
+    const diff=Math.round((due-today)/86400000);
+    const dueClr=diff<0?'#ff3d71':diff===0?'#ffc107':diff<=2?'#ff9800':'#00e676';
+    const dueText=diff<0?`Overdue`:diff===0?'Due Today':diff===1?'Due Tomorrow':`Due in ${diff}d`;
+    return `<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-left:3px solid #00f5ff;border-radius:12px;padding:1rem;margin-bottom:.6rem">
+      <div style="display:flex;align-items:flex-start;gap:.75rem">
+        <div style="flex:1">
+          <div style="font-weight:600;color:#fff;margin-bottom:.25rem">${escapeHtml(h.title)}</div>
+          <div style="font-size:.78rem;color:#00f5ff;margin-bottom:.3rem"><i class="bi bi-book-fill me-1"></i>${escapeHtml(h.subject)}</div>
+          <div style="font-size:.8rem;color:rgba(255,255,255,.5)">${escapeHtml(h.desc)}</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div style="font-size:.7rem;color:${dueClr};font-weight:600;background:${dueClr}18;padding:.25rem .6rem;border-radius:20px;border:1px solid ${dueClr}44;margin-bottom:.4rem">${dueText}</div>
+          <div style="font-size:.68rem;color:rgba(255,255,255,.3)">${fmtDate(h.dueDate)}</div>
+          <button onclick="deleteHomework('${h.id}')" style="background:none;border:none;color:rgba(255,61,113,.5);cursor:pointer;font-size:.85rem;margin-top:.4rem" title="Delete"><i class="bi bi-trash-fill"></i></button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+function deleteHomework(id){
+  if(!confirm('Remove this homework assignment?'))return;
+  DB.homework=DB.homework.filter(h=>h.id!==id);
+  saveDB(); renderHomeworkTch(); updateHwBadge(); toast('Homework removed.','success');
+}
+function updateHwBadge(){
+  const cnt=(DB.homework||[]).filter(h=>h.cls===myClass?.name).length;
+  document.getElementById('nb-hw').textContent=cnt||'';
+}
+
+/* ══ Helpers ══ */
+function feeBadge(st){const m={Paid:'badge-paid',Pending:'badge-pend',Partial:'badge-part'};return`<span class="${m[st]||'badge-gen'}">${st}</span>`;}
+function getGrade(m){if(m>=90)return'A+';if(m>=80)return'A';if(m>=70)return'B+';if(m>=60)return'B';if(m>=50)return'C';if(m>=33)return'D';return'F';}
+function getRemarks(m){if(m==='')return'—';m=+m;if(m>=90)return'🌟 Outstanding';if(m>=80)return'🎯 Excellent';if(m>=70)return'👍 Good';if(m>=60)return'✅ Average';if(m>=50)return'⚠️ Below Avg';if(m>=33)return'🔴 Needs Improvement';return'❌ Fail';}
+function gradeHtml(g){const map={'A+':'#00e676','A':'#00e676','B+':'#00f5ff','B':'#00f5ff','C':'#ffc107','D':'#ff9800','F':'#ff3d71','—':''};const c=map[g]||'#888';return g==='—'?'—':`<span style="background:${c}22;color:${c};border:1px solid ${c}55;padding:.2rem .55rem;border-radius:20px;font-size:.78rem;font-weight:700">${g}</span>`;}
+function fmtDate(d){if(!d)return'—';return new Date(d).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});}
+function toast(msg,type='success'){const el=document.getElementById('liveToast');el.classList.toggle('toast-danger',type==='danger');document.getElementById('toastMsg').textContent=msg;bootstrap.Toast.getOrCreateInstance(el,{delay:3000}).show();}
+function logout(){ sessionStorage.clear(); window.location.href='login.html'; }
+
+function initParticles(){
+  const canvas=document.getElementById('particleCanvas');if(!canvas)return;
+  const ctx=canvas.getContext('2d');canvas.width=innerWidth;canvas.height=innerHeight;
+  const pts=Array.from({length:50},()=>({x:Math.random()*canvas.width,y:Math.random()*canvas.height,r:Math.random()*1.5+.3,vx:(Math.random()-.5)*.3,vy:(Math.random()-.5)*.3,a:Math.random()*.5+.15}));
+  function draw(){ctx.clearRect(0,0,canvas.width,canvas.height);pts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>canvas.width)p.vx*=-1;if(p.y<0||p.y>canvas.height)p.vy*=-1;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle='#00f5ff';ctx.globalAlpha=p.a;ctx.fill();});ctx.globalAlpha=1;requestAnimationFrame(draw);}
+  draw();
+}
+</script>
+</body>
+</html>
